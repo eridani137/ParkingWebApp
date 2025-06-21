@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Parking.WebApp.Components;
 using Parking.WebApp.Data;
+using Parking.WebApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +13,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySQL(builder.Configuration.GetConnectionString("Default")!)
         .LogTo(Console.WriteLine, LogLevel.Information);
 });
+
+builder.Services.AddSingleton<ParkingService>();
 
 var app = builder.Build();
 

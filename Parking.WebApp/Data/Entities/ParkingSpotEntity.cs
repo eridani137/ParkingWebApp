@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace Parking.WebApp.Data.Entities;
 
 public class ParkingSpotEntity
@@ -6,4 +8,5 @@ public class ParkingSpotEntity
     public string? расположение { get; set; }
     public string? номер_клиента { get; set; }
     public ClientEntity? ClientEntity { get; set; }
+    [NotMapped] public bool IsOccupied { get; set; }
 }

@@ -1,7 +1,7 @@
 ﻿@page "/"
-@using System.Data.Entity
-@using Parking.WebApp.Data
-@inject AppDbContext Context
+@using Parking.WebApp.Services
+@inject ParkingService ParkingService
+@implements IDisposable
 
 <div class="page-wrapper">
     <div class="parking-container">
@@ -9,8 +9,8 @@
             @for (var i = 0; i < 7; i++)
             {
                 var spotIndex = i;
-                <div class="parking-spot top" @onclick="@(() => OnSpotClick(spotIndex))">
-                    <div class="circle @(_spots[spotIndex].IsOccupied ? "occupied" : "free")"></div>
+                <div class="parking-spot top" @onclick="@(() => ParkingService.ToggleSpot(spotIndex))">
+                    <div class="circle @(ParkingService.Spots[spotIndex].IsOccupied ? "occupied" : "free")"></div>
                 </div>
             }
         </div>
@@ -21,54 +21,29 @@
             @for (var i = 7; i < 14; i++)
             {
                 var spotIndex = i;
-                <div class="parking-spot bottom" @onclick="@(() => OnSpotClick(spotIndex))">
-                    <div class="circle @(_spots[spotIndex].IsOccupied ? "occupied" : "free")"></div>
+                <div class="parking-spot bottom" @onclick="@(() => ParkingService.ToggleSpot(spotIndex))">
+                    <div class="circle @(ParkingService.Spots[spotIndex].IsOccupied ? "occupied" : "free")"></div>
                 </div>
             }
         </div>
     </div>
 </div>
 
-@if (!string.IsNullOrEmpty(_message))
-{
-    <div class="message">@_message</div>
-}
-
 @code {
-
-    class Spot
-    {
-        public bool IsOccupied { get; set; }
-    }
-
-    readonly List<Spot> _spots = [];
-    string? _message;
-
     protected override void OnInitialized()
     {
-        for (var i = 0; i < 14; i++)
-        {
-            _spots.Add(new Spot { IsOccupied = Random.Shared.NextDouble() < 0.2 });
-        }
+        ParkingService.OnChange += Refresh;
     }
-
-    void OnSpotClick(int idx)
+    
+    private void Refresh()
     {
-        if (idx < 0 || idx >= _spots.Count) return;
-        _message = _spots[idx].IsOccupied
-            ? $"Место {idx + 1} занято"
-            : $"Место {idx + 1} свободно";
-        StateHasChanged();
-
-        var entity = Context.Место.FirstOrDefault(p => p.номер == idx + 1);
-        if (entity != null)
-        {
-            Context.Entry(entity)
-                .Reference(p => p.ClientEntity)
-                .Load();
-        }
+        InvokeAsync(StateHasChanged);
     }
 
+    public void Dispose()
+    {
+        ParkingService.OnChange -= Refresh;
+    }
 }
 
 <style>
