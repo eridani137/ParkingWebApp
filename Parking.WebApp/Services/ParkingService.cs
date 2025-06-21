@@ -6,6 +6,7 @@ namespace Parking.WebApp.Services;
 public class ParkingService
 {
     public List<ParkingSpotEntity> Spots { get; }
+    public List<ClientEntity> Clients { get; }
     public event Action? OnChange;
 
     public ParkingService(IServiceProvider provider)
@@ -13,6 +14,7 @@ public class ParkingService
         using var scope = provider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         Spots = context.Место.ToList();
+        Clients = context.Клиент.ToList();
     }
     
     public void ToggleSpot(int idx)

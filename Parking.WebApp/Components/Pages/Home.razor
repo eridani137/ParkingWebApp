@@ -1,52 +1,102 @@
 ﻿@page "/"
+@using Parking.WebApp.Data.Entities
 @using Parking.WebApp.Services
 @inject ParkingService ParkingService
 @implements IDisposable
 
 <div class="page-wrapper">
-    <div class="parking-container">
-        <div class="row top-row">
-            @for (var i = 0; i < 7; i++)
-            {
-                var spotIndex = i;
-                <div class="parking-spot top" @onclick="@(() => ParkingService.ToggleSpot(spotIndex))">
-                    <div class="circle @(ParkingService.Spots[spotIndex].IsOccupied ? "occupied" : "free")"></div>
-                </div>
-            }
+    <div class="main-layout">
+        <div class="parking-container">
+            <div class="row top-row">
+                @for (var i = 0; i < 7; i++)
+                {
+                    var spotIndex = i;
+                    <div class="parking-spot top" @onclick="@(() => ParkingService.ToggleSpot(spotIndex))">
+                        <div
+                            class="circle @(ParkingService.Spots[spotIndex].номер_клиента is not null ? "occupied" : "free")"></div>
+                    </div>
+                }
+            </div>
+
+            <div class="road"></div>
+
+            <div class="row bottom-row">
+                @for (var i = 7; i < 14; i++)
+                {
+                    var spotIndex = i;
+                    <div class="parking-spot bottom" @onclick="@(() => ParkingService.ToggleSpot(spotIndex))">
+                        <div
+                            class="circle @(ParkingService.Spots[spotIndex].номер_клиента is not null ? "occupied" : "free")"></div>
+                    </div>
+                }
+            </div>
         </div>
-
-        <div class="road"></div>
-
-        <div class="row bottom-row">
-            @for (var i = 7; i < 14; i++)
+        <div class="clients-panel">
+            <h3 style="color: white;">Клиенты</h3>
+            @foreach (var client in ParkingService.Clients)
             {
-                var spotIndex = i;
-                <div class="parking-spot bottom" @onclick="@(() => ParkingService.ToggleSpot(spotIndex))">
-                    <div class="circle @(ParkingService.Spots[spotIndex].IsOccupied ? "occupied" : "free")"></div>
+                <div class="client-item">
+                    <span>@client.имя (@client.телефон)</span>
+                    <button @onclick="() => SelectClient(client)">Выбрать</button>
                 </div>
             }
+            
+            <div class="selected-client">
+                <div class="row">
+                    <strong>Выбран:</strong>
+                    <span>
+                        @(_selectedClient?.имя ?? "никто")
+                    </span>
+                </div>
+
+                @if (_selectedClient is not null &&
+                     ParkingService.Spots.FirstOrDefault(p => p.номер_клиента == _selectedClient.телефон) is { } clientParkingSpot)
+                {
+                    <div class="row">
+                        <strong>Припаркован:</strong>
+                        <span>@clientParkingSpot.номер</span>
+                    </div>
+                }
+            </div>
         </div>
     </div>
 </div>
 
 @code {
+    
+    private ClientEntity? _selectedClient;
+    
     protected override void OnInitialized()
     {
         ParkingService.OnChange += Refresh;
     }
-    
+
     private void Refresh()
     {
         InvokeAsync(StateHasChanged);
+    }
+    
+    private void SelectClient(ClientEntity client)
+    {
+        _selectedClient = client;
     }
 
     public void Dispose()
     {
         ParkingService.OnChange -= Refresh;
     }
+
 }
 
 <style>
+    
+    .main-layout {
+        display: flex;
+        flex-direction: row;
+        gap: 40px;
+        align-items: flex-start;
+    }
+    
     .page-wrapper {
         position: fixed;
         top: 0;
@@ -132,4 +182,54 @@
         left: 50%;
         transform: translateX(-50%);
     }
+
+    .clients-panel {
+        width: 350px;
+        height: 477px;
+        background-color: #1a1a1a;
+        padding: 20px;
+        border: 3px solid #666;
+        border-radius: 10px;
+        color: #eee;
+        font-size: 1rem;
+        text-align: center;
+        scroll-behavior: smooth;
+    }
+
+    .client-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .client-item button {
+        padding: 5px 10px;
+        cursor: pointer;
+        background-color: #444;
+        color: #eee;
+        border: none;
+        border-radius: 4px;
+        transition: background-color 0.2s;
+    }
+
+    .client-item button:hover {
+        background-color: #666;
+    }
+
+    .selected-client {
+        margin-top: 20px;
+        font-size: 1.1rem;
+        text-align: left;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .selected-client .row {
+        display: grid;
+        grid-template-columns: 1.4fr 0.6fr;
+        gap: 10px;
+    }
+    
 </style>
