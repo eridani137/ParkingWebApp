@@ -1,9 +1,16 @@
+using Microsoft.EntityFrameworkCore;
 using Parking.WebApp.Components;
+using Parking.WebApp.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    options.UseMySQL(builder.Configuration.GetConnectionString("Default")!);
+});
 
 var app = builder.Build();
 
