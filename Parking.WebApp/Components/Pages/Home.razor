@@ -5,9 +5,9 @@
         <div class="row top-row">
             @for (var i = 0; i < 7; i++)
             {
-                var i1 = i;
-                <div class="parking-spot" @onclick="() => OnSpotClick(i1)">
-                    <div class="circle @(_spots[i].IsOccupied ? "occupied" : "free")"></div>
+                var spotIndex = i;
+                <div class="parking-spot top" @onclick="@(() => OnSpotClick(spotIndex))">
+                    <div class="circle @(_spots[spotIndex].IsOccupied ? "occupied" : "free")"></div>
                 </div>
             }
         </div>
@@ -17,9 +17,9 @@
         <div class="row bottom-row">
             @for (var i = 7; i < 14; i++)
             {
-                var i1 = i;
-                <div class="parking-spot" @onclick="() => OnSpotClick(i1)">
-                    <div class="circle @(_spots[i].IsOccupied ? "occupied" : "free")"></div>
+                var spotIndex = i;
+                <div class="parking-spot bottom" @onclick="@(() => OnSpotClick(spotIndex))">
+                    <div class="circle @(_spots[spotIndex].IsOccupied ? "occupied" : "free")"></div>
                 </div>
             }
         </div>
@@ -28,7 +28,7 @@
 
 @if (!string.IsNullOrEmpty(_message))
 {
-    <div class="text-center mt-2">@_message</div>
+    <div class="message">@_message</div>
 }
 
 @code {
@@ -43,24 +43,24 @@
 
     protected override void OnInitialized()
     {
-        var rnd = new Random();
         for (var i = 0; i < 14; i++)
         {
-            _spots.Add(new Spot { IsOccupied = rnd.NextDouble() < 0.2 });
+            _spots.Add(new Spot { IsOccupied = Random.Shared.NextDouble() < 0.2 });
         }
     }
 
     void OnSpotClick(int idx)
     {
+        if (idx < 0 || idx >= _spots.Count) return;
         _message = _spots[idx].IsOccupied
             ? $"Место {idx + 1} занято"
             : $"Место {idx + 1} свободно";
+        StateHasChanged();
     }
 
 }
 
 <style>
-    
     .page-wrapper {
         position: fixed;
         top: 0;
@@ -90,26 +90,43 @@
         width: 80px;
         height: 160px;
         background-color: #1f1f1f;
-        border: 3px solid #555;
+        border-left: 5px solid #555;
+        border-right: 5px solid #555;
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+    .parking-spot.top {
+        border-top: 5px solid #555;
+        border-bottom: none;
+    }
+
+    .parking-spot.bottom {
+        border-bottom: 5px solid #555;
+        border-top: none;
+    }
+
+    .parking-spot:hover {
+        background-color: #333;
     }
 
     .road {
         height: 80px;
-        margin: 20px auto;
         width: calc(7 * 80px + 6 * 20px);
-        border-top: 4px dashed #888;
-        border-bottom: 4px dashed #888;
+        border-top: 5px dashed #888;
+        border-bottom: 5px dashed #888;
         background-color: #2a2a2a;
+        pointer-events: none;
     }
 
     .circle {
         width: 32px;
         height: 32px;
         border-radius: 50%;
+        pointer-events: none;
     }
 
     .free {
@@ -125,5 +142,8 @@
         font-size: 1.5rem;
         color: #eee;
         text-align: center;
+        position: fixed;
+        left: 50%;
+        transform: translateX(-50%);
     }
 </style>
