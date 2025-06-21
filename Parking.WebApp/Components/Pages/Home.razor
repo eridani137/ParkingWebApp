@@ -1,4 +1,5 @@
 ﻿@page "/"
+@using System.Data.Entity
 @using Parking.WebApp.Data
 @inject AppDbContext Context
 
@@ -58,6 +59,10 @@
             ? $"Место {idx + 1} занято"
             : $"Место {idx + 1} свободно";
         StateHasChanged();
+
+        var entity = Context.Место
+            .Include(c => c.ClientEntity)
+            .FirstOrDefault(p => p.номер == idx + 1);
     }
 
 }
