@@ -10,21 +10,20 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<ClientEntity>(entity =>
-        {
-            entity.HasKey(e => e.телефон);
-            entity.HasIndex(e => e.телефон).IsUnique();
-        });
+        modelBuilder.Entity<ClientEntity>()
+            .HasKey(e => e.телефон);
         
-        modelBuilder.Entity<ParkingSpotEntity>(entity =>
-        {
-            entity.HasKey(e => e.номер);
-            entity.HasIndex(e => e.номер).IsUnique();
-            entity.HasOne(e => e.ClientEntity)
-                .WithOne()
-                .HasForeignKey<ParkingSpotEntity>(e => e.номер_клиента)
-                .HasPrincipalKey<ClientEntity>(c => c.телефон)
-                .OnDelete(DeleteBehavior.SetNull);
-        });
+        modelBuilder.Entity<ParkingSpotEntity>()
+            .HasKey(e => e.номер);
+    
+        modelBuilder.Entity<ClientEntity>()
+            .HasOne(c => c.Место)
+            .WithOne(p => p.ClientEntity)
+            .HasForeignKey<ParkingSpotEntity>(p => p.номер_клиента)
+            .HasPrincipalKey<ClientEntity>(c => c.телефон);
+        
+        modelBuilder.Entity<ParkingSpotEntity>()
+            .HasIndex(p => p.номер_клиента)
+            .IsUnique();
     }
 }

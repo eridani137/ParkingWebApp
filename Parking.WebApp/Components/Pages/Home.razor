@@ -60,9 +60,13 @@
             : $"Место {idx + 1} свободно";
         StateHasChanged();
 
-        var entity = Context.Место
-            .Include(c => c.ClientEntity)
-            .FirstOrDefault(p => p.номер == idx + 1);
+        var entity = Context.Место.FirstOrDefault(p => p.номер == idx + 1);
+        if (entity != null)
+        {
+            Context.Entry(entity)
+                .Reference(p => p.ClientEntity)
+                .Load();
+        }
     }
 
 }

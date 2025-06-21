@@ -9,7 +9,8 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    options.UseMySQL(builder.Configuration.GetConnectionString("Default")!);
+    options.UseMySQL(builder.Configuration.GetConnectionString("Default")!)
+        .LogTo(Console.WriteLine, LogLevel.Information);
 });
 
 var app = builder.Build();
