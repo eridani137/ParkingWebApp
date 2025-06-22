@@ -30,6 +30,8 @@ public class ParkingService
 
         var dbSpot = await context.Место.FirstOrDefaultAsync(s => s.номер == spot.номер);
         if (dbSpot is null) return;
+        
+        
 
         dbSpot.номер_клиента = client.телефон;
         await context.SaveChangesAsync();

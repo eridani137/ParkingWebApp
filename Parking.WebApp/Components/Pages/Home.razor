@@ -1,8 +1,11 @@
 ﻿@page "/"
+@using Microsoft.EntityFrameworkCore
+@using Parking.WebApp.Data
 @using Parking.WebApp.Data.Entities
 @using Parking.WebApp.Services
 @inject ParkingService ParkingService
 @implements IDisposable
+@inject AppDbContext Context
 
 <div class="page-wrapper">
     <div class="main-layout">

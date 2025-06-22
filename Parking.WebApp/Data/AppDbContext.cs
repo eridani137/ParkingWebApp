@@ -18,12 +18,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.HasOne(c => c.ParkingSpot)
                 .WithOne(p => p.ClientEntity)
                 .HasForeignKey<ParkingSpotEntity>(p => p.номер_клиента)
-                .HasPrincipalKey<ClientEntity>(c => c.телефон);
+                .HasPrincipalKey<ClientEntity>(c => c.телефон)
+                .OnDelete(DeleteBehavior.NoAction);
 
             entity.HasOne(c => c.VehicleEntity)
                 .WithOne(p => p.ClientEntity)
                 .HasForeignKey<VehicleEntity>(v => v.телефон)
-                .HasPrincipalKey<ClientEntity>(c => c.телефон);
+                .HasPrincipalKey<ClientEntity>(c => c.телефон)
+                .OnDelete(DeleteBehavior.NoAction);
         });
 
         modelBuilder.Entity<ParkingSpotEntity>(entity =>
