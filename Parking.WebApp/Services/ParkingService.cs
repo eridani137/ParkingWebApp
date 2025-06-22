@@ -38,21 +38,24 @@ public class ParkingService
         NotifyStateChanged();
     }
 
-    public async Task FreeSpot(int idx)
+    
+    public async Task FreeSpot(int spotNumber)
     {
-        var spot = Spots.ElementAtOrDefault(idx);
-        if (spot is null) return;
-        
         using var scope = _provider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    
-        var dbSpot = await context.Место.FirstOrDefaultAsync(s => s.номер == idx);
+
+        var dbSpot = await context.Место.FirstOrDefaultAsync(s => s.номер == spotNumber);
         if (dbSpot?.номер_клиента == null) return;
 
         dbSpot.номер_клиента = null;
         await context.SaveChangesAsync();
 
-        spot.номер_клиента = null;
+        var localSpot = Spots.FirstOrDefault(s => s.номер == spotNumber);
+        if (localSpot != null)
+        {
+            localSpot.номер_клиента = null;
+        }
+    
         NotifyStateChanged();
     }
     
