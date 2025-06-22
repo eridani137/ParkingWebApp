@@ -33,14 +33,16 @@
         </div>
         <div class="clients-panel">
             <h3 style="color: white;">Клиенты</h3>
-            @foreach (var client in ParkingService.Clients)
-            {
-                <div class="client-item">
-                    <span>@client.имя (@client.телефон)</span>
-                    <button @onclick="() => SelectClient(client)">Выбрать</button>
-                </div>
-            }
-            
+            <div class="clients-list">
+                @foreach (var client in ParkingService.Clients)
+                {
+                    <div class="client-item @(_selectedClient?.телефон == client.телефон ? "selected" : "")" 
+                         @onclick="() => SelectClient(client)">
+                        <span>@client.имя (@client.телефон)</span>
+                    </div>
+                }
+            </div>
+
             <div class="selected-client">
                 <div class="row">
                     <strong>Выбран:</strong>
@@ -63,9 +65,9 @@
 </div>
 
 @code {
-    
+
     private ClientEntity? _selectedClient;
-    
+
     protected override void OnInitialized()
     {
         ParkingService.OnChange += Refresh;
@@ -75,7 +77,7 @@
     {
         InvokeAsync(StateHasChanged);
     }
-    
+
     private void SelectClient(ClientEntity client)
     {
         _selectedClient = client;
@@ -89,14 +91,14 @@
 }
 
 <style>
-    
+
     .main-layout {
         display: flex;
         flex-direction: row;
         gap: 40px;
         align-items: flex-start;
     }
-    
+
     .page-wrapper {
         position: fixed;
         top: 0;
@@ -196,25 +198,37 @@
         scroll-behavior: smooth;
     }
 
+    .clients-list {
+        max-height: 300px;
+        overflow-y: auto;
+        margin-bottom: 20px;
+    }
+
     .client-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 10px;
-    }
-
-    .client-item button {
-        padding: 5px 10px;
+        padding: 12px 15px;
+        margin-bottom: 8px;
+        background-color: #2a2a2a;
+        border: 2px solid #444;
+        border-radius: 6px;
         cursor: pointer;
-        background-color: #444;
-        color: #eee;
-        border: none;
-        border-radius: 4px;
-        transition: background-color 0.2s;
+        transition: all 0.2s ease;
+        text-align: left;
     }
 
-    .client-item button:hover {
-        background-color: #666;
+    .client-item:hover {
+        background-color: #333;
+        border-color: #555;
+    }
+
+    .client-item.selected {
+        background-color: rgba(106, 141, 121, 0.9);
+        border-color: rgba(118, 175, 141, 0.9);
+        color: white;
+    }
+
+    .client-item.selected:hover {
+        background-color: rgba(129, 169, 146, 0.9);
+        border-color: rgba(118, 175, 141, 0.9);
     }
 
     .selected-client {
@@ -231,5 +245,5 @@
         grid-template-columns: 1.4fr 0.6fr;
         gap: 10px;
     }
-    
+
 </style>
