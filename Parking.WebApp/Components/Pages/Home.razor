@@ -11,9 +11,10 @@
                 @for (var i = 0; i < 7; i++)
                 {
                     var spotIndex = i;
+                    var isSelectedClientSpot = _selectedClient != null && ParkingService.Spots[spotIndex].номер_клиента == _selectedClient.телефон;
                     <div class="parking-spot top" @onclick="@(() => ParkingService.ToggleSpot(spotIndex))">
                         <div
-                            class="circle @(ParkingService.Spots[spotIndex].номер_клиента is not null ? "occupied" : "free")"></div>
+                            class="circle @(ParkingService.Spots[spotIndex].номер_клиента is not null ? "occupied" : "free") @(isSelectedClientSpot ? "blinking" : "")"></div>
                     </div>
                 }
             </div>
@@ -24,39 +25,22 @@
                 @for (var i = 7; i < 14; i++)
                 {
                     var spotIndex = i;
+                    var isSelectedClientSpot = _selectedClient != null && ParkingService.Spots[spotIndex].номер_клиента == _selectedClient.телефон;
                     <div class="parking-spot bottom" @onclick="@(() => ParkingService.ToggleSpot(spotIndex))">
                         <div
-                            class="circle @(ParkingService.Spots[spotIndex].номер_клиента is not null ? "occupied" : "free")"></div>
+                            class="circle @(ParkingService.Spots[spotIndex].номер_клиента is not null ? "occupied" : "free") @(isSelectedClientSpot ? "blinking" : "")"></div>
                     </div>
                 }
             </div>
         </div>
         <div class="clients-panel">
-            <h3 style="color: white;">Клиенты</h3>
+            <h3>Клиенты</h3>
             <div class="clients-list">
                 @foreach (var client in ParkingService.Clients)
                 {
-                    <div class="client-item @(_selectedClient?.телефон == client.телефон ? "selected" : "")" 
+                    <div class="client-item @(_selectedClient?.телефон == client.телефон ? "selected" : "")"
                          @onclick="() => SelectClient(client)">
                         <span>@client.имя (@client.телефон)</span>
-                    </div>
-                }
-            </div>
-
-            <div class="selected-client">
-                <div class="row">
-                    <strong>Выбран:</strong>
-                    <span>
-                        @(_selectedClient?.имя ?? "никто")
-                    </span>
-                </div>
-
-                @if (_selectedClient is not null &&
-                     ParkingService.Spots.FirstOrDefault(p => p.номер_клиента == _selectedClient.телефон) is { } clientParkingSpot)
-                {
-                    <div class="row">
-                        <strong>Припаркован:</strong>
-                        <span>@clientParkingSpot.номер</span>
                     </div>
                 }
             </div>
@@ -242,8 +226,43 @@
 
     .selected-client .row {
         display: grid;
-        grid-template-columns: 1.4fr 0.6fr;
+        grid-template-columns: 1fr;
         gap: 10px;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .blinking-spot {
+        animation: blink 1s infinite;
+        font-weight: bold;
+        font-size: 1.3rem;
+        color: #e0cc72;
+    }
+
+    .blinking {
+        animation: smooth-blink 2s ease-in-out infinite;
+    }
+
+    @@keyframes blink {
+        0%, 50% {
+            opacity: 1;
+        }
+        51%, 100% {
+            opacity: 0.3;
+        }
+    }
+
+    @@keyframes smooth-blink {
+        0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+            background-color: brown;
+        }
+        50% {
+            opacity: 0.8;
+            transform: scale(1.1);
+            background-color: #e0cc72;
+        }
     }
 
 </style>
