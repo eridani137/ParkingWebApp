@@ -3,19 +3,37 @@ using Parking.WebApp.Data.Entities;
 
 namespace Parking.WebApp.Services;
 
-public class ParkingService
+public class ParkingService : IDisposable
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly SemaphoreSlim _initSemaphore = new(1, 1);
-    private bool _isInitialized = false;
-    
-    public List<ParkingSpotEntity> Spots { get; private set; } = new();
-    public List<ClientEntity> Clients { get; private set; } = new();
+    private readonly Timer _refreshTimer;
+    private bool _isInitialized;
+    private bool _disposed;
+
+    public List<ParkingSpotEntity> Spots { get; private set; } = [];
+    public List<ClientEntity> Clients { get; private set; } = [];
     public event Action? OnChange;
 
     public ParkingService(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
+
+        _refreshTimer = new Timer(async void (_) =>
+            {
+                try
+                {
+                    await RefreshDataIfInitialized();
+                }
+                catch
+                {
+                    // ignored
+                }
+            },
+            null,
+            TimeSpan.FromSeconds(5),
+            TimeSpan.FromSeconds(5)
+        );
     }
 
     public async Task EnsureInitializedAsync()
@@ -29,10 +47,10 @@ public class ParkingService
 
             using var scope = _serviceProvider.CreateScope();
             var repository = scope.ServiceProvider.GetRequiredService<ParkingRepository>();
-            
+
             Spots = await repository.GetAllSpotsAsync();
             Clients = await repository.GetAllClientsAsync();
-            
+
             _isInitialized = true;
             NotifyStateChanged();
         }
@@ -42,14 +60,31 @@ public class ParkingService
         }
     }
 
-    public async Task RefreshDataAsync()
+    private async Task RefreshDataAsync()
     {
-        using var scope = _serviceProvider.CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<ParkingRepository>();
-        
-        Spots = await repository.GetAllSpotsAsync();
-        Clients = await repository.GetAllClientsAsync();
-        NotifyStateChanged();
+        if (_disposed) return;
+
+        try
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var repository = scope.ServiceProvider.GetRequiredService<ParkingRepository>();
+
+            Spots = await repository.GetAllSpotsAsync();
+            Clients = await repository.GetAllClientsAsync();
+            NotifyStateChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка при обновлении данных: {ex.Message}");
+        }
+    }
+
+    private async Task RefreshDataIfInitialized()
+    {
+        if (_isInitialized && !_disposed)
+        {
+            await RefreshDataAsync();
+        }
     }
 
     public async Task TakeSpot(int idx, ClientEntity client)
@@ -90,4 +125,14 @@ public class ParkingService
     }
 
     private void NotifyStateChanged() => OnChange?.Invoke();
+
+    public void Dispose()
+    {
+        if (_disposed) return;
+
+        _disposed = true;
+        _refreshTimer.Dispose();
+        _initSemaphore.Dispose();
+        GC.SuppressFinalize(this);
+    }
 }
