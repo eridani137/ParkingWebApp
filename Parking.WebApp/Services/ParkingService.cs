@@ -43,10 +43,10 @@ public class ParkingService
         using var scope = _provider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     
-        var spot = context.Место.FirstOrDefault(s => s.номер == idx);
-        if (spot?.номер_клиента == null) return;
+        var dbSpot = context.Место.FirstOrDefault(s => s.номер == idx);
+        if (dbSpot?.номер_клиента == null) return;
 
-        spot.номер_клиента = null;
+        dbSpot.номер_клиента = null;
         context.SaveChanges();
 
         NotifyStateChanged();
