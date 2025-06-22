@@ -23,33 +23,32 @@ public class ParkingService
     public void TakeSpot(int idx, ClientEntity client)
     {
         var spot = Spots.ElementAtOrDefault(idx);
-        if (spot is null) return;
-        if (spot.номер_клиента is not null) return;
+        if (spot is null || spot.номер_клиента is not null) return;
 
-        spot.номер_клиента = client.телефон;
-        
         using var scope = _provider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        context.Место.Attach(Spots[idx]);
-        context.Entry(Spots[idx]).State = EntityState.Modified;
+
+        var dbSpot = context.Место.FirstOrDefault(s => s.номер == spot.номер);
+        if (dbSpot is null) return;
+
+        dbSpot.номер_клиента = client.телефон;
         context.SaveChanges();
 
+        spot.номер_клиента = client.телефон;
         NotifyStateChanged();
     }
 
     public void FreeSpot(int idx)
     {
-        var spot = Spots.FirstOrDefault(s => s.номер == idx);
-        if (spot?.номер_клиента == null) return;
-        
-        spot.номер_клиента = null;
-        
         using var scope = _provider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        context.Место.Attach(spot);
-        context.Entry(spot).State = EntityState.Modified;
+    
+        var spot = context.Место.FirstOrDefault(s => s.номер == idx);
+        if (spot?.номер_клиента == null) return;
+
+        spot.номер_клиента = null;
         context.SaveChanges();
-        
+
         NotifyStateChanged();
     }
     
