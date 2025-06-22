@@ -45,6 +45,8 @@ public class ParkingService
     {
         using var scope = _provider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        
+        var localSpot = Spots.FirstOrDefault(s => s.номер == spotNumber);
 
         var dbSpot = await context.Место.FirstOrDefaultAsync(s => s.номер == spotNumber);
         if (dbSpot?.номер_клиента == null) return;
@@ -52,7 +54,6 @@ public class ParkingService
         dbSpot.номер_клиента = null;
         await context.SaveChangesAsync();
 
-        var localSpot = Spots.FirstOrDefault(s => s.номер == spotNumber);
         if (localSpot != null)
         {
             localSpot.номер_клиента = null;
