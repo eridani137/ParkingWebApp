@@ -1,91 +1,99 @@
 ﻿@page "/"
-@using Microsoft.EntityFrameworkCore
-@using Parking.WebApp.Data
 @using Parking.WebApp.Data.Entities
 @using Parking.WebApp.Services
 @inject ParkingService ParkingService
 @implements IDisposable
-@inject AppDbContext Context
 
 <div class="page-wrapper">
-    <div class="main-layout">
-        <div class="parking-container">
-            <div class="row top-row">
-                @for (var i = 0; i < 7; i++)
-                {
-                    var spotIndex = i;
-                    var isSelectedClientSpot = _selectedClient != null && ParkingService.Spots[spotIndex].номер_клиента == _selectedClient.телефон;
-                    var isFreeSpotBlinking = _isSelectingSpot && ParkingService.Spots[spotIndex].номер_клиента == null;
-                    <div class="parking-spot top" @onclick="@(() => HandleSpotClick(spotIndex))">
-                        <div
-                            class="circle @(ParkingService.Spots[spotIndex].номер_клиента is not null ? "occupied" : "free") @(isSelectedClientSpot ? "blinking" : "") @(isFreeSpotBlinking ? "free-blinking" : "")"></div>
-                    </div>
-                }
-            </div>
-
-            <div class="road"></div>
-
-            <div class="row bottom-row">
-                @for (var i = 7; i < 14; i++)
-                {
-                    var spotIndex = i;
-                    var isSelectedClientSpot = _selectedClient != null && ParkingService.Spots[spotIndex].номер_клиента == _selectedClient.телефон;
-                    var isFreeSpotBlinking = _isSelectingSpot && ParkingService.Spots[spotIndex].номер_клиента == null;
-                    <div class="parking-spot bottom" @onclick="@(() => HandleSpotClick(spotIndex))">
-                        <div
-                            class="circle @(ParkingService.Spots[spotIndex].номер_клиента is not null ? "occupied" : "free") @(isSelectedClientSpot ? "blinking" : "") @(isFreeSpotBlinking ? "free-blinking" : "")"></div>
-                    </div>
-                }
-            </div>
-        </div>
-        <div class="clients-panel">
-            <h3>Клиенты</h3>
-            <div class="clients-list">
-                @foreach (var client in ParkingService.Clients)
-                {
-                    <div class="client-item @(_selectedClient?.телефон == client.телефон ? "selected" : "")"
-                         @onclick="() => SelectClient(client)">
-                        <span>@client.имя (@client.телефон)</span>
-                    </div>
-                }
-            </div>
-
-            @if (_selectedClient != null)
-            {
-                <div class="action-section">
-                    @if (IsClientParked(_selectedClient))
+    @if (!_isLoaded)
+    {
+        <p>Загрузка...</p>
+    }
+    else
+    {
+        <div class="main-layout">
+            <div class="parking-container">
+                <div class="row top-row">
+                    @for (var i = 0; i < 7; i++)
                     {
-                        <button class="action-button free-button" @onclick="FreeClientParking">
-                            Освободить место
-                        </button>
-                    }
-                    else
-                    {
-                        <button class="action-button take-button" @onclick="StartTakingSpot">
-                            Занять место
-                        </button>
+                        var spotIndex = i;
+                        var isSelectedClientSpot = _selectedClient != null && ParkingService.Spots[spotIndex].номер_клиента == _selectedClient.телефон;
+                        var isFreeSpotBlinking = _isSelectingSpot && ParkingService.Spots[spotIndex].номер_клиента == null;
+                        <div class="parking-spot top" @onclick="@(() => HandleSpotClick(spotIndex))">
+                            <div
+                                class="circle @(ParkingService.Spots[spotIndex].номер_клиента is not null ? "occupied" : "free") @(isSelectedClientSpot ? "blinking" : "") @(isFreeSpotBlinking ? "free-blinking" : "")"></div>
+                        </div>
                     }
                 </div>
-            }
+
+                <div class="road"></div>
+
+                <div class="row bottom-row">
+                    @for (var i = 7; i < 14; i++)
+                    {
+                        var spotIndex = i;
+                        var isSelectedClientSpot = _selectedClient != null && ParkingService.Spots[spotIndex].номер_клиента == _selectedClient.телефон;
+                        var isFreeSpotBlinking = _isSelectingSpot && ParkingService.Spots[spotIndex].номер_клиента == null;
+                        <div class="parking-spot bottom" @onclick="@(() => HandleSpotClick(spotIndex))">
+                            <div
+                                class="circle @(ParkingService.Spots[spotIndex].номер_клиента is not null ? "occupied" : "free") @(isSelectedClientSpot ? "blinking" : "") @(isFreeSpotBlinking ? "free-blinking" : "")"></div>
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="clients-panel">
+                <h3>Клиенты</h3>
+                <div class="clients-list">
+                    @foreach (var client in ParkingService.Clients)
+                    {
+                        <div class="client-item @(_selectedClient?.телефон == client.телефон ? "selected" : "")"
+                             @onclick="() => SelectClient(client)">
+                            <span>@client.имя (@client.телефон)</span>
+                        </div>
+                    }
+                </div>
+
+                @if (_selectedClient != null)
+                {
+                    <div class="action-section">
+                        @if (IsClientParked(_selectedClient))
+                        {
+                            <button class="action-button free-button" @onclick="FreeClientParking">
+                                Освободить место
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="action-button take-button" @onclick="StartTakingSpot">
+                                Занять место
+                            </button>
+                        }
+                    </div>
+                }
+            </div>
         </div>
-    </div>
+    }
 </div>
 
 @code {
 
     private ClientEntity? _selectedClient;
     private bool _isSelectingSpot;
+    private bool _isLoaded;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         ParkingService.OnChange += Refresh;
+        await ParkingService.EnsureInitializedAsync();
+        _isLoaded = true;
+        StateHasChanged();
     }
 
     private void Refresh()
     {
         _selectedClient = null;
         _isSelectingSpot = false;
-        
+
         InvokeAsync(StateHasChanged);
     }
 

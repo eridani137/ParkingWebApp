@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations.Schema;
-
 namespace Parking.WebApp.Data.Entities;
 
 public class ParkingSpotEntity

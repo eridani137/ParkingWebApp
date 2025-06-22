@@ -1,10 +1,10 @@
-using Microsoft.EntityFrameworkCore;
+using System.Data;
+using MySqlConnector;
 using Parking.WebApp.Components;
 using Parking.WebApp.Data;
 using Parking.WebApp.Services;
 using Serilog;
 using Serilog.Core;
-using Serilog.Events;
 
 const string logs = "Logs";
 var logsPath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, logs));
@@ -34,12 +34,8 @@ builder.Services.AddSerilog();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-{
-    options.UseMySQL(builder.Configuration.GetConnectionString("Default")!)
-        .LogTo(Console.WriteLine, LogLevel.Information);
-});
-
+builder.Services.AddScoped<IDbConnection>(_ => new MySqlConnection(builder.Configuration.GetConnectionString("Default")));
+builder.Services.AddScoped<ParkingRepository>();
 builder.Services.AddSingleton<ParkingService>();
 
 var app = builder.Build();
