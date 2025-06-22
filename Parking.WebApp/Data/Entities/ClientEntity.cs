@@ -6,5 +6,6 @@ public class ClientEntity
     public string фамилия { get; set; }
     public string имя { get; set; }
     public string отчество { get; set; }
-    public ParkingSpotEntity? Место { get; set; }
+    public ParkingSpotEntity? ParkingSpot { get; set; }
+    public VehicleEntity? VehicleEntity { get; set; }
 }
