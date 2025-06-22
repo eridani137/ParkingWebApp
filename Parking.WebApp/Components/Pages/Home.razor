@@ -80,6 +80,9 @@
 
     private void Refresh()
     {
+        _selectedClient = null;
+        _isSelectingSpot = false;
+        
         InvokeAsync(StateHasChanged);
     }
 
@@ -101,9 +104,17 @@
 
     private void HandleSpotClick(int spotIndex)
     {
-        if (!_isSelectingSpot || _selectedClient == null) return;
+        if (!_isSelectingSpot || _selectedClient == null)
+        {
+            var spot = ParkingService.Spots.ElementAtOrDefault(spotIndex);
+            _selectedClient = spot?.номер_клиента is not null
+                ? ParkingService.Clients.FirstOrDefault(c => c.телефон == spot.номер_клиента)
+                : null;
+            return;
+        }
+
         if (ParkingService.Spots[spotIndex].номер_клиента != null) return;
-        
+
         ParkingService.TakeSpot(spotIndex, _selectedClient);
         _isSelectingSpot = false;
     }
@@ -113,7 +124,7 @@
         if (_selectedClient == null) return;
         var spot = ParkingService.Spots.FirstOrDefault(s => s.номер_клиента == _selectedClient.телефон);
         if (spot == null) return;
-        
+
         ParkingService.FreeSpot(spot.номер);
     }
 
