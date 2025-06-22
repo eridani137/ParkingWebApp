@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Parking.WebApp.Data;
 using Parking.WebApp.Data.Entities;
 
@@ -21,38 +22,33 @@ public class ParkingService
     
     public void TakeSpot(int idx, ClientEntity client)
     {
-        if (idx < 0 || idx >= Spots.Count) return;
-        if (Spots[idx].номер_клиента != null) return;
+        var spot = Spots.ElementAtOrDefault(idx);
+        if (spot is null) return;
+        if (spot.номер_клиента is not null) return;
 
+        spot.номер_клиента = client.телефон;
+        
         using var scope = _provider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var spotInDb = context.Место.Find(Spots[idx].номер);
-        if (spotInDb is not null)
-        {
-            spotInDb.номер_клиента = client.телефон;
-            context.SaveChanges();
-        }
-        
-        Spots[idx].номер_клиента = client.телефон;
-        
+        context.Место.Attach(Spots[idx]);
+        context.Entry(Spots[idx]).State = EntityState.Modified;
+        context.SaveChanges();
+
         NotifyStateChanged();
     }
 
     public void FreeSpot(int idx)
     {
         var spot = Spots.FirstOrDefault(s => s.номер == idx);
-        if (spot?.номер_клиента is null) return;
+        if (spot?.номер_клиента == null) return;
+        
+        spot.номер_клиента = null;
         
         using var scope = _provider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var spotInDb = context.Место.Find(idx);
-        if (spotInDb != null)
-        {
-            spotInDb.номер_клиента = null;
-            context.SaveChanges();
-        }
-        
-        spot.номер_клиента = null;
+        context.Место.Attach(spot);
+        context.Entry(spot).State = EntityState.Modified;
+        context.SaveChanges();
         
         NotifyStateChanged();
     }
