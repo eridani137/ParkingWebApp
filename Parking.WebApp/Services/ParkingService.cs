@@ -22,6 +22,7 @@ public class ParkingService
     
     public void TakeSpot(int idx, ClientEntity client)
     {
+        idx += 1;
         var spot = Spots.ElementAtOrDefault(idx);
         if (spot is null) return;
         if (spot.номер_клиента is not null) return;
@@ -39,6 +40,7 @@ public class ParkingService
 
     public void FreeSpot(int idx)
     {
+        idx += 1;
         var spot = Spots.FirstOrDefault(s => s.номер == idx);
         if (spot?.номер_клиента == null) return;
         
