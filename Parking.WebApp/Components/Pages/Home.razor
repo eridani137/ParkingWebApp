@@ -102,7 +102,7 @@
         _isSelectingSpot = true;
     }
 
-    private void HandleSpotClick(int spotIndex)
+    private async Task HandleSpotClick(int spotIndex)
     {
         if (!_isSelectingSpot || _selectedClient == null)
         {
@@ -115,17 +115,17 @@
 
         if (ParkingService.Spots[spotIndex].номер_клиента != null) return;
 
-        ParkingService.TakeSpot(spotIndex, _selectedClient);
+        await ParkingService.TakeSpot(spotIndex, _selectedClient);
         _isSelectingSpot = false;
     }
 
-    private void FreeClientParking()
+    private async Task FreeClientParking()
     {
         if (_selectedClient == null) return;
         var spot = ParkingService.Spots.FirstOrDefault(s => s.номер_клиента == _selectedClient.телефон);
         if (spot == null) return;
 
-        ParkingService.FreeSpot(spot.номер);
+        await ParkingService.FreeSpot(spot.номер);
     }
 
     public void Dispose()

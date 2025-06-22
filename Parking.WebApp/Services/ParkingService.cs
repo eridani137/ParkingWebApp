@@ -20,7 +20,7 @@ public class ParkingService
         Clients = context.Клиент.ToList();
     }
     
-    public void TakeSpot(int idx, ClientEntity client)
+    public async Task TakeSpot(int idx, ClientEntity client)
     {
         var spot = Spots.ElementAtOrDefault(idx);
         if (spot is null || spot.номер_клиента is not null) return;
@@ -28,27 +28,31 @@ public class ParkingService
         using var scope = _provider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-        var dbSpot = context.Место.FirstOrDefault(s => s.номер == spot.номер);
+        var dbSpot = await context.Место.FirstOrDefaultAsync(s => s.номер == spot.номер);
         if (dbSpot is null) return;
 
         dbSpot.номер_клиента = client.телефон;
-        context.SaveChanges();
+        await context.SaveChangesAsync();
 
         spot.номер_клиента = client.телефон;
         NotifyStateChanged();
     }
 
-    public void FreeSpot(int idx)
+    public async Task FreeSpot(int idx)
     {
+        var spot = Spots.ElementAtOrDefault(idx);
+        if (spot is null) return;
+        
         using var scope = _provider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     
-        var dbSpot = context.Место.FirstOrDefault(s => s.номер == idx);
+        var dbSpot = await context.Место.FirstOrDefaultAsync(s => s.номер == idx);
         if (dbSpot?.номер_клиента == null) return;
 
         dbSpot.номер_клиента = null;
-        context.SaveChanges();
+        await context.SaveChangesAsync();
 
+        spot.номер_клиента = null;
         NotifyStateChanged();
     }
     
